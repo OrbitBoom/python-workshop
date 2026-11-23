@@ -73,6 +73,18 @@ class WorkshopTests(unittest.TestCase):
         ):
             self.assertEqual(translate("it is", "en", "fr"), "c'est")
 
+    def test_translation_prefers_exact_match(self):
+        data = {
+            "responseStatus": 200,
+            "responseData": {"translatedText": "partial"},
+            "matches": [
+                {"segment": "Hello", "match": 0.99, "translation": "partial"},
+                {"segment": "Hello", "match": 1, "translation": "नमस्कार"},
+            ],
+        }
+        with patch("services.get_json", return_value=data):
+            self.assertEqual(translate("Hello", "en", "hi"), "नमस्कार")
+
     def test_email_content(self):
         with patch("email_client.smtplib.SMTP_SSL") as transport:
             send(

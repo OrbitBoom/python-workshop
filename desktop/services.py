@@ -71,4 +71,15 @@ def translate(text, source, target):
     )
     if str(data.get("responseStatus")) != "200":
         raise ValueError(data.get("responseDetails") or "Translation unavailable.")
+    # The provider sometimes ranks a partial match ahead of an exact one.
+    exact = [
+        row
+        for row in data.get("matches", [])
+        if row.get("segment") == text
+        and row.get("match") == 1
+        and row.get("translation")
+    ]
+    if exact:
+        best = max(exact, key=lambda row: float(row.get("quality") or 0))
+        return html.unescape(best["translation"])
     return html.unescape(data["responseData"]["translatedText"])
